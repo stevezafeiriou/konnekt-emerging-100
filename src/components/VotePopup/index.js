@@ -36,10 +36,19 @@ const VotePopup = ({ artist, onClose, onVote }) => {
 				throw new Error(errorData.message || "Failed to initiate vote");
 			}
 
+			// Store voted artist in localStorage
+			const votedArtists = JSON.parse(
+				localStorage.getItem("votedArtists") || "[]"
+			);
+			localStorage.setItem(
+				"votedArtists",
+				JSON.stringify([...votedArtists, artist.id])
+			);
+
 			alert(
 				"Verification email sent! Please check your inbox to confirm your vote."
 			);
-			onVote(); // Refresh UI if needed
+			onVote(); // This should trigger context refresh
 			onClose();
 		} catch (error) {
 			alert(error.message);
@@ -72,6 +81,7 @@ const VotePopup = ({ artist, onClose, onVote }) => {
 							checked={acceptTerms}
 							onChange={(e) => setAcceptTerms(e.target.checked)}
 							disabled={isSubmitting}
+							required
 						/>
 						I accept the terms and conditions
 					</TermsLabel>
@@ -87,7 +97,7 @@ const VotePopup = ({ artist, onClose, onVote }) => {
 						<PopupButton
 							type="button"
 							onClick={onClose}
-							disabled={!validateEmail(email) || !acceptTerms || isSubmitting}
+							disabled={isSubmitting} // Only disable if submitting
 						>
 							Cancel
 						</PopupButton>

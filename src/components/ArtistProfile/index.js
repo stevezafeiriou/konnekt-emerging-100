@@ -30,13 +30,16 @@ import {
 import { FaArrowLeft, FaRegHeart } from "react-icons/fa";
 import VotePopup from "../VotePopup";
 
-const API_BASE =
-	process.env.REACT_APP_API_BASE || "http://emerging100.local/wp-json";
+const API_BASE = process.env.REACT_APP_API_BASE || "https://konnekt.gr/wp-json";
 
 const ArtistProfile = () => {
 	const { artistSlug } = useParams();
 	const navigate = useNavigate();
-	const { artists, handleVote } = useArtists();
+	const {
+		artists,
+		loading: contextLoading,
+		error: contextError,
+	} = useArtists();
 	const [artist, setArtist] = useState(null);
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState(null);
@@ -45,6 +48,8 @@ const ArtistProfile = () => {
 	const [showImagePopup, setShowImagePopup] = useState(false);
 
 	useEffect(() => {
+		if (contextLoading) return;
+
 		const contextArtist = artists.find((a) => a.slug === artistSlug);
 
 		if (contextArtist) {
@@ -68,7 +73,7 @@ const ArtistProfile = () => {
 
 			fetchArtist();
 		}
-	}, [artistSlug, artists]);
+	}, [artistSlug, artists, contextLoading]);
 
 	const hasVoted = useMemo(() => {
 		if (!artist) return false;
@@ -78,14 +83,18 @@ const ArtistProfile = () => {
 		return votedArtists.includes(artist.id);
 	}, [artist, voteTrigger]);
 
-	if (loading)
+	if (loading || contextLoading)
 		return (
 			<div style={{ padding: "2rem", textAlign: "center" }}>
 				Loading artist...
 			</div>
 		);
-	if (error)
-		return <div style={{ padding: "2rem", color: "red" }}>Error: {error}</div>;
+	if (error || contextError)
+		return (
+			<div style={{ padding: "2rem", color: "red" }}>
+				Error: {error || contextError}
+			</div>
+		);
 	if (!artist) return <div style={{ padding: "2rem" }}>Artist not found</div>;
 
 	return (

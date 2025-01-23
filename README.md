@@ -1,25 +1,26 @@
 # Konnekt Emerging 100 List
 
-A React-based web application for showcasing and voting on emerging artists, featuring real-time statistics and performance tracking.
+A React-based web application for showcasing and voting on emerging artists, featuring real-time statistics and API-powered performance tracking.
 
 ## Key Features
 
-- 🎨 Artist Discovery Grid with search/filter capabilities
+- 🌐 **API-Driven Data** - Full integration with WordPress REST API
+- 🎨 Artist Discovery Grid with advanced search/filter
 - 📊 Interactive performance charts using Recharts
-- 🗳️ Voting system with local storage persistence
-- 📱 Fully responsive design
+- 🗳️ Secure voting system with email verification
+- 📱 Fully responsive design with skeleton loading states
 - 🖼️ Artwork preview with click-to-zoom functionality
-- 📈 Historical performance tracking
-- 🔍 Context-based artist data management
-- 🚀 React Router navigation with dynamic routing
+- 📈 Historical performance tracking with real data
+- 🔄 Context API for global state management
+- 🚀 React Router 6 with dynamic routing and deep linking
 
 ## Technologies Used
 
 - **Core**: React 18, React Router 6
 - **Styling**: styled-components
 - **Charts**: Recharts
-- **Icons**: React Icons
 - **State Management**: React Context API
+- **API**: Axios (implicit in fetch usage)
 - **Build Tool**: Create React App
 - **Utilities**: Lodash (debounce), date-fns
 
@@ -41,10 +42,10 @@ A React-based web application for showcasing and voting on emerging artists, fea
    ```
 
 3. **Environment Setup**
-   Create `.env` file in root directory:
+   Create `.env` file:
 
    ```env
-   REACT_APP_API_BASE=https://your-api-endpoint.com/wp-json
+   REACT_APP_API_BASE=https://konnekt.gr/wp-json
    ```
 
 4. **Run development server**
@@ -59,14 +60,11 @@ A React-based web application for showcasing and voting on emerging artists, fea
 ```bash
 src/
 ├── components/
-│   ├── ArtistProfile/       # Artist detail page components
-│   ├── Header/              # Navigation header
-│   ├── Footer/              # App footer
-│   ├── Layout/              # Main app layout
-│   ├── Table/               # Artist grid table
-│   └── VotePopup/           # Voting modal
+│   ├── ArtistProfile/       # Artist detail components
+│   ├── Table/               # Main artist grid
+│   └── VotePopup/           # Voting system
 ├── context/
-│   └── ArtistsContext.js    # Global state management
+│   └── ArtistsContext.js    # Global state & API management
 ├── assets/
 │   └── styles/              # Global styles
 └── App.js                   # Root component
@@ -76,109 +74,122 @@ src/
 
 ### 1. Artist Table (`Table.js`)
 
-- Dynamic grid of artists with search functionality
-- Performance sparkline charts
-- Responsive skeleton loading states
-- Sorting and filtering capabilities
+- API-powered artist grid with search
+- Real-time performance charts
+- Responsive skeleton loading
+- Context-managed data flow
 
 **Key Features:**
 
-- Debounced search input
-- Performance percentage change indicators
-- Responsive design for all screen sizes
-- Click-to-navigate artist profiles
+- Debounced search (300ms)
+- Performance change indicators
+- Deep linking to artist profiles
+- Error boundary handling
 
 ### 2. Artist Profile (`ArtistProfile.js`)
 
-- Detailed artist information page
-- Artwork preview with zoom functionality
-- Historical voting data visualization
-- Contact information protection system
+- Hybrid data loading (context + direct API)
+- Protected contact information
+- Full-screen artwork preview
+- Historical voting visualization
 
 **Key Features:**
 
-- Full-screen artwork preview
-- Voting system with local storage tracking
-- Protected contact information (requires vote)
-- Interactive line chart with tooltips
+- Direct API fallback for deep links
+- localStorage vote tracking
+- Interactive tooltips
+- Mobile-optimized layout
 
 ### 3. Voting System
 
-- Context-managed voting state
-- Local storage persistence
-- Vote confirmation modal
-- Real-time vote count updates
+- Email verification workflow
+- Context-integrated voting
+- API-powered vote initiation
+- Real-time data refresh
 
 ```javascript
-// Voting logic example from ArtistsContext
-const handleVote = (artistId) => {
-	setArtists(
-		artists.map((artist) =>
-			artist.id === artistId ? { ...artist, votes: artist.votes + 1 } : artist
-		)
-	);
-
-	const votedArtists = JSON.parse(localStorage.getItem("votedArtists") || "[]");
-	localStorage.setItem(
-		"votedArtists",
-		JSON.stringify([...votedArtists, artistId])
-	);
+// Updated voting flow
+const handleSubmit = async (e) => {
+	e.preventDefault();
+	// API call to initiate vote
+	await fetch(`${API_BASE}/eap/v1/vote/initiate`, {
+		method: "POST",
+		body: JSON.stringify({ email, artist_id }),
+	});
+	// Update local storage and refresh data
+	localStorage.setItem("votedArtists", [...votedArtists, artist.id]);
+	refreshArtists(); // Context refresh
 };
 ```
+
+## API Integration
+
+### Endpoints
+
+| Endpoint                      | Method | Purpose              |
+| ----------------------------- | ------ | -------------------- |
+| `/eap/v1/artists`             | GET    | Get all artists      |
+| `/eap/v1/artist/{artistSlug}` | GET    | Get single artist    |
+| `/eap/v1/vote/initiate`       | POST   | Start voting process |
 
 ## Configuration
 
 ### Environment Variables
 
-| Variable           | Description                  | Default                          |
-| ------------------ | ---------------------------- | -------------------------------- |
-| REACT_APP_API_BASE | Base URL for artist data API | http://emerging100.local/wp-json |
+| Variable           | Description  | Default                      |
+| ------------------ | ------------ | ---------------------------- |
+| REACT_APP_API_BASE | API base URL | `https://konnekt.gr/wp-json` |
 
-### Performance Optimization
+### Performance Features
 
 - Memoized components with `React.memo`
-- Debounced search input
-- Responsive image loading
-- Code splitting with React Router
-- Efficient chart rendering with Recharts
+- Optimized re-renders with `useMemo`
+- Code splitting via React Router
+- Efficient chart rendering
 
 ## Routing
 
 ```javascript
-// App.js Routing Configuration
-<Routes>
-	<Route path="/" element={<Table />} />
-	<Route path="/:artistSlug" element={<ArtistProfile />} />
-</Routes>
+// Enhanced routing with context
+<ArtistsProvider>
+	<Router>
+		<Layout>
+			<Routes>
+				<Route path="/" element={<Table />} />
+				<Route path="/:artistSlug" element={<ArtistProfile />} />
+			</Routes>
+		</Layout>
+	</Router>
+</ArtistsProvider>
 ```
 
 ## Contributing
 
-1. Fork the repository
-2. Create feature branch: `git checkout -b feature/new-feature`
-3. Commit changes: `git commit -m 'Add new feature'`
-4. Push to branch: `git push origin feature/new-feature`
-5. Submit pull request
+1. Fork repository
+2. Create feature branch: `git checkout -b feature/name`
+3. Commit changes: `git commit -m 'Description'`
+4. Push branch: `git push origin feature/name`
+5. Create PR
 
-**Development Guidelines:**
+**Development Standards:**
 
-- Follow React best practices
-- Maintain consistent styling with styled-components
-- Use functional components with hooks
-- Add PropTypes for component validation
-- Include Storybook stories for new components
+- API calls through context
+- Error boundary patterns
+- Mobile-first responsive design
+- PropTypes validation
+- Performance profiling
 
-## Future Enhancements
+## Future Roadmap
 
-- [ ] Artist registration system
-- [ ] Social sharing capabilities
-- [ ] Advanced filtering options
-- [ ] User authentication
-- [ ] Admin dashboard
-- [ ] Email notification system
+- [ ] Voting analytics dashboard
+- [ ] Artist social media integration
+- [ ] Advanced search operators
+- [ ] Email verification UI
+- [ ] Performance benchmarking
+- [ ] API caching system
 
 ## License
 
 MIT License © 2024 Saphire Labs | Stefanos D. Zafeiriou
 
-For full license text, see [LICENSE](LICENSE) file in the repository root.
+Full license: [LICENSE](LICENSE)

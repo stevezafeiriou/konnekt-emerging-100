@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import {
 	TableWrapper,
@@ -21,33 +21,13 @@ import {
 import { LineChart, Line, XAxis, Tooltip, ResponsiveContainer } from "recharts";
 import { debounce } from "lodash";
 import { IoIosSearch } from "react-icons/io";
-
-const API_BASE = process.env.REACT_APP_API_BASE || "https://konnekt.gr/wp-json";
+import { useArtists } from "../../context/ArtistsContext";
 
 const Table = () => {
 	const navigate = useNavigate();
-	const [artists, setArtists] = useState(null);
-	const [loading, setLoading] = useState(true);
-	const [error, setError] = useState(null);
+	const { artists, loading, error } = useArtists();
 	const [searchTerm, setSearchTerm] = useState("");
 	const [delayedSearch, setDelayedSearch] = useState("");
-
-	useEffect(() => {
-		const fetchArtists = async () => {
-			try {
-				const response = await fetch(`${API_BASE}/eap/v1/artists`);
-				if (!response.ok) throw new Error("Failed to fetch artists");
-				const data = await response.json();
-				setArtists(data);
-			} catch (err) {
-				setError(err.message);
-			} finally {
-				setLoading(false);
-			}
-		};
-
-		fetchArtists();
-	}, []);
 
 	const PerformanceChart = ({ performance }) => {
 		if (!performance || performance.length === 0)

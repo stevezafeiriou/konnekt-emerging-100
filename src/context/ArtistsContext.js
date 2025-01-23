@@ -1,58 +1,61 @@
 import React, { createContext, useState, useEffect, useContext } from "react";
-import { data } from "../data";
+
+const API_BASE = process.env.REACT_APP_API_BASE || "https://konnekt.gr/wp-json";
 
 const ArtistsContext = createContext();
-
-const generatePerformanceData = () => {
-	return Array.from({ length: 5 }, (_, i) => ({
-		month: ["Jan", "Feb", "Mar", "Apr", "May"][i],
-		votes: Math.floor(Math.random() * 100),
-	}));
-};
 
 export const ArtistsProvider = ({ children }) => {
 	const [artists, setArtists] = useState([]);
 	const [loading, setLoading] = useState(true);
+	const [error, setError] = useState(null);
+
+	const fetchArtists = async () => {
+		setLoading(true);
+		setError(null);
+		try {
+			const response = await fetch(`${API_BASE}/eap/v1/artists`);
+			if (!response.ok) throw new Error("Failed to fetch artists");
+			const data = await response.json();
+			setArtists(data);
+		} catch (err) {
+			setError(err.message);
+		} finally {
+			setLoading(false);
+		}
+	};
 
 	useEffect(() => {
-		const loadArtists = () => {
-			try {
-				const approvedArtists = data
-					.filter((artist) => artist.approved)
-					.map((artist) => ({
-						...artist,
-						performanceData: generatePerformanceData(),
-						previousVotes: Math.floor(
-							artist.votes * (0.8 + Math.random() * 0.4)
-						),
-					}))
-					.sort((a, b) => b.votes - a.votes);
-
-				setArtists(approvedArtists);
-			} finally {
-				setLoading(false);
-			}
-		};
-
-		// Simulate API call with 500ms delay
-		const timer = setTimeout(loadArtists, 500);
-		return () => clearTimeout(timer);
+		fetchArtists();
 	}, []);
 
-	const handleVote = (artistId) => {
-		setArtists((prev) =>
-			prev
-				.map((artist) =>
+	const handleVote = async (artistId) => {
+		try {
+			// Optional: Add optimistic update if needed
+			setArtists((prev) =>
+				prev.map((artist) =>
 					artist.id === artistId
 						? { ...artist, votes: artist.votes + 1 }
 						: artist
 				)
-				.sort((a, b) => b.votes - a.votes)
-		);
+			);
+
+			// Invalidate cache and refresh data
+			await fetchArtists();
+		} catch (err) {
+			console.error("Error updating votes:", err);
+		}
 	};
 
 	return (
-		<ArtistsContext.Provider value={{ artists, loading, handleVote }}>
+		<ArtistsContext.Provider
+			value={{
+				artists,
+				loading,
+				error,
+				handleVote,
+				refreshArtists: fetchArtists,
+			}}
+		>
 			{children}
 		</ArtistsContext.Provider>
 	);
