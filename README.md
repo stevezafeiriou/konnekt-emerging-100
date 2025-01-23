@@ -1,147 +1,184 @@
-# Konnekt Bio-Links App
+# Konnekt Emerging 100 List
 
-This is a simple, customizable **Bio-Links** app built with **React.js**. The app allows users to display a list of links along with a short description and logo. This project is designed to be easily modifiable and extendable, allowing for the addition of new links and updates to the existing content.
+A React-based web application for showcasing and voting on emerging artists, featuring real-time statistics and performance tracking.
 
-## Table of Contents
+## Key Features
 
-- [Demo](#demo)
-- [Features](#features)
-- [Project Structure](#project-structure)
-- [Getting Started](#getting-started)
-  - [Prerequisites](#prerequisites)
-  - [Installation](#installation)
-  - [Running the App](#running-the-app)
-- [How to Use](#how-to-use)
-  - [Modifying Links](#modifying-links)
-  - [Updating Header Content](#updating-header-content)
-- [License](#license)
+- 🎨 Artist Discovery Grid with search/filter capabilities
+- 📊 Interactive performance charts using Recharts
+- 🗳️ Voting system with local storage persistence
+- 📱 Fully responsive design
+- 🖼️ Artwork preview with click-to-zoom functionality
+- 📈 Historical performance tracking
+- 🔍 Context-based artist data management
+- 🚀 React Router navigation with dynamic routing
 
-## Demo
+## Technologies Used
 
-A live demo of the app can be found [here](https://konnekt.gr).
+- **Core**: React 18, React Router 6
+- **Styling**: styled-components
+- **Charts**: Recharts
+- **Icons**: React Icons
+- **State Management**: React Context API
+- **Build Tool**: Create React App
+- **Utilities**: Lodash (debounce), date-fns
 
-## Features
+## Installation & Setup
 
-- **Dynamic Links**: Easily configurable links for any resource.
-- **Responsive Design**: Mobile-first design that adapts to different screen sizes.
-- **Customizable Header**: Ability to update the logo, title, and description.
-- **Smooth UI Animations**: Hover effect on buttons for a modern touch.
-
-## Project Structure
-
-```
-.
-├── src
-│   ├── App.js
-│   ├── App.css
-│   ├── AppElements.js
-│   ├── linksData.js
-│   ├── Assets
-│   │   └── konnekt-pink.jpg
-│   └── index.js
-├── public
-│   ├── index.html
-│   └── ...
-├── LICENSE
-├── README.md
-└── package.json
-```
-
-- **`App.js`**: The main app component where the header and the links are rendered dynamically.
-- **`AppElements.js`**: Contains styled components used in the app.
-- **`linksData.js`**: Contains the header and link data that can be easily modified.
-- **`Assets/`**: Contains static assets such as images.
-- **`App.css`**: Global CSS styling for the app.
-
-## Getting Started
-
-### Prerequisites
-
-- **Node.js** (>= 14.x)
-- **npm** or **yarn** for package management.
-
-### Installation
-
-1. Clone the repository:
+1. **Clone repository**
 
    ```bash
-   git clone https://github.com/yourusername/konnekt-linktree-app.git
-   cd konnekt-linktree-app
+   git clone https://github.com/stevezafeiriou/konnekt-emerging-100.git
+   cd konnekt-emerging-100
    ```
 
-2. Install the necessary dependencies:
-
-   Using npm:
+2. **Install dependencies**
 
    ```bash
    npm install
-   ```
-
-   Or using yarn:
-
-   ```bash
+   # or
    yarn install
    ```
 
-### Running the App
+3. **Environment Setup**
+   Create `.env` file in root directory:
 
-To start the development server, run:
+   ```env
+   REACT_APP_API_BASE=https://your-api-endpoint.com/wp-json
+   ```
+
+4. **Run development server**
+   ```bash
+   npm start
+   # or
+   yarn start
+   ```
+
+## Project Structure
 
 ```bash
-npm start
+src/
+├── components/
+│   ├── ArtistProfile/       # Artist detail page components
+│   ├── Header/              # Navigation header
+│   ├── Footer/              # App footer
+│   ├── Layout/              # Main app layout
+│   ├── Table/               # Artist grid table
+│   └── VotePopup/           # Voting modal
+├── context/
+│   └── ArtistsContext.js    # Global state management
+├── assets/
+│   └── styles/              # Global styles
+└── App.js                   # Root component
 ```
 
-Or if using yarn:
+## Core Components
 
-```bash
-yarn start
-```
+### 1. Artist Table (`Table.js`)
 
-This will open the app in your default browser at `http://localhost:3000`.
+- Dynamic grid of artists with search functionality
+- Performance sparkline charts
+- Responsive skeleton loading states
+- Sorting and filtering capabilities
 
-## How to Use
+**Key Features:**
 
-### Modifying Links
+- Debounced search input
+- Performance percentage change indicators
+- Responsive design for all screen sizes
+- Click-to-navigate artist profiles
 
-All the links in the app are stored in `linksData.js`. Each link object contains the following properties:
+### 2. Artist Profile (`ArtistProfile.js`)
 
-- **`id`**: A unique identifier for each link.
-- **`buttonTitle`**: The text that appears on the button.
-- **`url`**: The target URL for the link.
-- **`icon`**: Placeholder for an icon (currently not in use).
+- Detailed artist information page
+- Artwork preview with zoom functionality
+- Historical voting data visualization
+- Contact information protection system
 
-To modify the links, simply update the `linksData` array in `linksData.js`:
+**Key Features:**
+
+- Full-screen artwork preview
+- Voting system with local storage tracking
+- Protected contact information (requires vote)
+- Interactive line chart with tooltips
+
+### 3. Voting System
+
+- Context-managed voting state
+- Local storage persistence
+- Vote confirmation modal
+- Real-time vote count updates
 
 ```javascript
-export const linksData = [
-	{
-		id: 1,
-		buttonTitle: "New Button Title",
-		url: "https://new-url.com",
-		icon: "",
-	},
-	// Add more links as needed
-];
-```
+// Voting logic example from ArtistsContext
+const handleVote = (artistId) => {
+	setArtists(
+		artists.map((artist) =>
+			artist.id === artistId ? { ...artist, votes: artist.votes + 1 } : artist
+		)
+	);
 
-### Updating Header Content
-
-The header section (image, title, and description) is defined in `headerData` in the `linksData.js` file. To update the content:
-
-```javascript
-export const headerData = {
-	imageSrc: "./Assets/new-logo.jpg", // Path to new logo image
-	altText: "New alt text",
-	title: "New Title",
-	description: "New description text for the header section.",
+	const votedArtists = JSON.parse(localStorage.getItem("votedArtists") || "[]");
+	localStorage.setItem(
+		"votedArtists",
+		JSON.stringify([...votedArtists, artistId])
+	);
 };
 ```
 
-- **`imageSrc`**: Path to the logo image.
-- **`altText`**: Alt text for accessibility.
-- **`title`**: The text displayed as the main header.
-- **`description`**: The sub-header text that provides additional information.
+## Configuration
+
+### Environment Variables
+
+| Variable           | Description                  | Default                          |
+| ------------------ | ---------------------------- | -------------------------------- |
+| REACT_APP_API_BASE | Base URL for artist data API | http://emerging100.local/wp-json |
+
+### Performance Optimization
+
+- Memoized components with `React.memo`
+- Debounced search input
+- Responsive image loading
+- Code splitting with React Router
+- Efficient chart rendering with Recharts
+
+## Routing
+
+```javascript
+// App.js Routing Configuration
+<Routes>
+	<Route path="/" element={<Table />} />
+	<Route path="/:artistSlug" element={<ArtistProfile />} />
+</Routes>
+```
+
+## Contributing
+
+1. Fork the repository
+2. Create feature branch: `git checkout -b feature/new-feature`
+3. Commit changes: `git commit -m 'Add new feature'`
+4. Push to branch: `git push origin feature/new-feature`
+5. Submit pull request
+
+**Development Guidelines:**
+
+- Follow React best practices
+- Maintain consistent styling with styled-components
+- Use functional components with hooks
+- Add PropTypes for component validation
+- Include Storybook stories for new components
+
+## Future Enhancements
+
+- [ ] Artist registration system
+- [ ] Social sharing capabilities
+- [ ] Advanced filtering options
+- [ ] User authentication
+- [ ] Admin dashboard
+- [ ] Email notification system
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+MIT License © 2024 Saphire Labs | Stefanos D. Zafeiriou
+
+For full license text, see [LICENSE](LICENSE) file in the repository root.
